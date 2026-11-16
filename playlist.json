@@ -1,4 +1,34 @@
 {
-  "tv": ["brand-loop.mp4", "film-zoom.mp4", "brand-loop.mp4", "film-stack.mp4", "brand-loop.mp4", "layers-teaser.mp4"],
-  "logo": ["logo-loop.mp4"]
+  "tv": [
+    "brand-loop.mp4",
+    "film-zoom.mp4",
+    "brand-loop.mp4",
+    "film-stack.mp4",
+    "brand-loop.mp4",
+    "layers-teaser.mp4"
+  ],
+  "logo": [
+    "logo-loop.mp4"
+  ],
+  "logo-a-wink": [
+    "logo-a-wink.mp4"
+  ],
+  "logo-b-build": [
+    "logo-b-build.mp4"
+  ],
+  "logo-c-pulse": [
+    "logo-c-pulse.mp4"
+  ],
+  "logo-d-layers": [
+    "logo-d-layers.mp4"
+  ],
+  "compare": [
+    "logo-a-wink.mp4",
+    "logo-a-wink.mp4",
+    "logo-b-build.mp4",
+    "logo-c-pulse.mp4",
+    "logo-c-pulse.mp4",
+    "logo-d-layers.mp4",
+    "logo-d-layers.mp4"
+  ]
 }

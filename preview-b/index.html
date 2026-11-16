@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ZaminAI</title>
+<style>
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #013432; cursor: none; }
+#v { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #013432; }
+#hint { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; font: 600 28px/1.3 Arial, Helvetica, sans-serif; color: #9fd9c2; display: none; }
+</style>
+</head>
+<body>
+<video id="v" autoplay muted playsinline webkit-playsinline preload="auto"></video>
+<div id="hint">Press OK to play</div>
+<script>
+(function () {
+  var CFG = {"source":"../","list":"logo-b-build","fallback":["logo-loop.mp4"]};
+  var v = document.getElementById("v"), hint = document.getElementById("hint");
+  var items = CFG.fallback.slice(0), i = 0, triedPlaylist = false;
+
+  function load(done) {
+    var x;
+    try { x = new XMLHttpRequest(); } catch (e) { done(); return; }
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      if (x.status === 200) {
+        try {
+          var p = JSON.parse(x.responseText);
+          if (p && p[CFG.list] && p[CFG.list].length) items = p[CFG.list];
+        } catch (e) {}
+      }
+      triedPlaylist = true;
+      done();
+    };
+    try {
+      x.open("GET", CFG.source + "playlist.json?t=" + new Date().getTime(), true);
+      x.timeout = 8000;
+      x.ontimeout = function () { triedPlaylist = true; done(); };
+      x.send();
+    } catch (e) { triedPlaylist = true; done(); }
+  }
+
+  function start() {
+    var r;
+    try { r = v.play(); } catch (e) {}
+    if (r && r.then) {
+      r.then(function () { hint.style.display = "none"; }, function () { hint.style.display = "block"; });
+    }
+  }
+
+  function play() {
+    v.loop = items.length === 1;
+    v.muted = true;
+    v.src = CFG.source + "videos/" + items[i % items.length];
+    try { v.load(); } catch (e) {}
+    start();
+  }
+
+  v.addEventListener("playing", function () { hint.style.display = "none"; }, false);
+  v.addEventListener("ended", function () {
+    i++;
+    if (i % items.length === 0) { i = 0; load(play); } else { play(); }
+  }, false);
+  v.addEventListener("error", function () {
+    setTimeout(function () { i++; load(play); }, 3000);
+  }, false);
+
+  // Some TVs block autoplay until a button is pressed: any key or click starts it.
+  function kick() { if (v.paused) start(); }
+  document.addEventListener("keydown", kick, false);
+  document.addEventListener("click", kick, false);
+
+  // If nothing plays after a while (stalled network, sleeping tab), try again.
+  setInterval(function () { if (v.paused && !v.ended) start(); }, 15000);
+
+  // A single looping video never ends, so look for playlist changes every 3 minutes.
+  setInterval(function () {
+    if (items.length !== 1) return;
+    var cur = items[0];
+    load(function () { if (items.length !== 1 || items[0] !== cur) { i = 0; play(); } });
+  }, 180000);
+
+  try { if (navigator.wakeLock) navigator.wakeLock.request("screen")["catch"](function () {}); } catch (e) {}
+
+  load(play);
+})();
+</script>
+</body>
+</html>
