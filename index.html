@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ZaminAI</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #013432; overflow: hidden; cursor: none; }
+  video { display: block; width: 100%; height: 100%; object-fit: contain; background: #013432; }
+</style>
+</head>
+<body>
+<video id="v" autoplay muted playsinline preload="auto"></video>
+<script>
+// Plays the list named by data-list on <body> or ?list= (default "tv") from playlist.json, in order, forever.
+// The playlist is re-read at the start of each round, so a pushed change shows up without a refresh.
+(function () {
+  var root = document.currentScript.getAttribute("data-root") || "./";
+  var name = new URLSearchParams(location.search).get("list") || document.body.getAttribute("data-list") || "tv";
+  var v = document.getElementById("v"), list = [], i = 0;
+  function load(cb) {
+    fetch(root + "playlist.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (p) { if (p[name] && p[name].length) list = p[name]; cb(); })
+      .catch(function () { cb(); });
+  }
+  function play() {
+    if (!list.length) { setTimeout(function () { load(play); }, 5000); return; }
+    v.loop = list.length === 1;
+    v.src = root + "videos/" + list[i % list.length];
+    var p = v.play(); if (p && p.catch) p.catch(function () {});
+  }
+  v.addEventListener("ended", function () {
+    i++;
+    if (i % list.length === 0) { i = 0; load(play); } else play();
+  });
+  v.addEventListener("error", function () { setTimeout(function () { i++; load(play); }, 3000); });
+  // A single looping video never ends, so check the playlist every few minutes instead.
+  setInterval(function () {
+    if (list.length !== 1) return;
+    var cur = list[0];
+    load(function () { if (list[0] !== cur || list.length !== 1) { i = 0; play(); } });
+  }, 180000);
+  try { if (navigator.wakeLock) navigator.wakeLock.request("screen").catch(function () {}); } catch (e) {}
+  load(play);
+})();
+</script>
+</body>
+</html>
